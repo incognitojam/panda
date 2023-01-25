@@ -3,6 +3,7 @@
 #define MSG_EngVehicleSpThrottle  0x204   // RX from PCM, for driver throttle input
 #define MSG_DesiredTorqBrk        0x213   // RX from ABS, for standstill state
 #define MSG_Steering_Data_FD1     0x083   // TX by OP, various driver switches and LKAS/CC buttons
+#define MSG_ACCDATA               0x186   // TX by OP, ACC controls
 #define MSG_ACCDATA_3             0x18A   // TX by OP, ACC/TJA user interface
 #define MSG_Lane_Assist_Data1     0x3CA   // TX by OP, Lane Keep Assist
 #define MSG_LateralMotionControl  0x3D3   // TX by OP, Traffic Jam Assist
@@ -15,6 +16,7 @@
 const CanMsg FORD_TX_MSGS[] = {
   {MSG_Steering_Data_FD1, 0, 8},
   {MSG_Steering_Data_FD1, 2, 8},
+  {MSG_ACCDATA, 0, 8},
   {MSG_ACCDATA_3, 0, 8},
   {MSG_Lane_Assist_Data1, 0, 8},
   {MSG_LateralMotionControl, 0, 8},
@@ -32,7 +34,8 @@ addr_checks ford_rx_checks = {ford_addr_checks, FORD_ADDR_CHECK_LEN};
 
 
 static bool ford_lkas_msg_check(int addr) {
-  return (addr == MSG_ACCDATA_3)
+  return (addr == MSG_ACCDATA)
+      || (addr == MSG_ACCDATA_3)
       || (addr == MSG_Lane_Assist_Data1)
       || (addr == MSG_LateralMotionControl)
       || (addr == MSG_IPMA_Data);
@@ -77,7 +80,6 @@ static int ford_rx_hook(CANPacket_t *to_push) {
 }
 
 static int ford_tx_hook(CANPacket_t *to_send) {
-
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
