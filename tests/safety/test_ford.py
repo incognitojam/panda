@@ -10,6 +10,7 @@ from panda.tests.safety.common import CANPackerPanda
 MSG_EngBrakeData = 0x165          # RX from PCM, for driver brake pedal and cruise state
 MSG_EngVehicleSpThrottle = 0x204  # RX from PCM, for driver throttle input
 MSG_Steering_Data_FD1 = 0x083     # TX by OP, various driver switches and LKAS/CC buttons
+MSG_ACCDATA = 0x186               # TX by OP, ACC controls
 MSG_ACCDATA_3 = 0x18A             # TX by OP, ACC/TJA user interface
 MSG_Lane_Assist_Data1 = 0x3CA     # TX by OP, Lane Keep Assist
 MSG_LateralMotionControl = 0x3D3  # TX by OP, Traffic Jam Assist
@@ -28,10 +29,10 @@ class TestFordSafety(common.PandaSafetyTest):
   RELAY_MALFUNCTION_BUS = 0
 
   TX_MSGS = [
-    [MSG_Steering_Data_FD1, 0], [MSG_Steering_Data_FD1, 2], [MSG_ACCDATA_3, 0], [MSG_Lane_Assist_Data1, 0],
+    [MSG_Steering_Data_FD1, 0], [MSG_Steering_Data_FD1, 2], [MSG_ACCDATA, 0], [MSG_ACCDATA_3, 0], [MSG_Lane_Assist_Data1, 0],
     [MSG_LateralMotionControl, 0], [MSG_IPMA_Data, 0],
   ]
-  FWD_BLACKLISTED_ADDRS = {2: [MSG_ACCDATA_3, MSG_Lane_Assist_Data1, MSG_LateralMotionControl, MSG_IPMA_Data]}
+  FWD_BLACKLISTED_ADDRS = {2: [MSG_ACCDATA, MSG_ACCDATA_3, MSG_Lane_Assist_Data1, MSG_LateralMotionControl, MSG_IPMA_Data]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
   def setUp(self):
