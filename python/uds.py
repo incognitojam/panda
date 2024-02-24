@@ -1,7 +1,7 @@
 import time
 import struct
 from collections import deque
-from typing import Callable, NamedTuple, Tuple, List, Deque, Generator, Optional, cast
+from typing import cast, Callable, Deque, Generator, List, NamedTuple, Optional, Tuple
 from enum import IntEnum
 from functools import partial
 
@@ -553,9 +553,9 @@ class IsoTpMessage():
 FUNCTIONAL_ADDRS = [0x7DF, 0x18DB33F1]
 
 
-def get_rx_addr_for_tx_addr(tx_addr: int, rx_offset: int = 0x8) -> Optional[int]:
+def get_rx_addr_for_tx_addr(tx_addr: int, rx_offset: int = 0x8) -> int:
   if tx_addr in FUNCTIONAL_ADDRS:
-    return None
+    raise ValueError("invalid tx_addr: functional address {}".format(tx_addr))
 
   if tx_addr < 0xFFF8:
     # pseudo-standard 11 bit response addr (add 8) works for most manufacturers
@@ -575,8 +575,6 @@ class UdsClient():
     self.bus = bus
     self.tx_addr = tx_addr
     self.rx_addr = rx_addr if rx_addr is not None else get_rx_addr_for_tx_addr(tx_addr)
-    if self.rx_addr is None:
-      raise ValueError("unable to determine rx_addr for tx_addr: {}".format(tx_addr))
     self.sub_addr = sub_addr
     self.timeout = timeout
     self.debug = debug
