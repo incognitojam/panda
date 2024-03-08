@@ -319,6 +319,7 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_TESLA, &tesla_hooks},
   {SAFETY_SUBARU_PREGLOBAL, &subaru_preglobal_hooks},
   {SAFETY_VOLKSWAGEN_PQ, &volkswagen_pq_hooks},
+  {SAFETY_PSA, &psa_hooks},
   {SAFETY_ALLOUTPUT, &alloutput_hooks},
 #endif
 };
