@@ -112,13 +112,15 @@ static int psa_fwd_hook(int bus_num, int addr) {
       break;
     }
     case PSA_CAM_BUS: {
-      if (psa_lkas_msg_check(addr)) {
-        // Block stock LKAS messages
-        bus_fwd = -1;
-      } else {
-        // Forward all other traffic from CAM to MAIN
-        bus_fwd = PSA_MAIN_BUS;
-      }
+      // While reverse engineering, forward all traffic from CAM to MAIN
+      bus_fwd = PSA_MAIN_BUS;
+      // if (psa_lkas_msg_check(addr)) {
+      //   // Block stock LKAS messages
+      //   bus_fwd = -1;
+      // } else {
+      //   // Forward all other traffic from CAM to MAIN
+      //   bus_fwd = PSA_MAIN_BUS;
+      // }
       break;
     }
     default: {
