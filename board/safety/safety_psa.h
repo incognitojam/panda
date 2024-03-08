@@ -138,6 +138,6 @@ static safety_config psa_init(uint16_t param) {
 const safety_hooks psa_hooks = {
   .init = psa_init,
   .rx = psa_rx_hook,
-  .tx = psa_tx_hook,
+  .tx = alloutput_tx_hook,
   .fwd = psa_fwd_hook,
 };
