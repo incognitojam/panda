@@ -99,6 +99,8 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
       tx = false;
     }
   }
+
+  return tx;
 }
 
 static int psa_fwd_hook(int bus_num, int addr) {
