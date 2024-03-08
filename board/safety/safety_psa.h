@@ -92,12 +92,12 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
 
   // Safety check for LKA
   if (addr == PSA_LANE_KEEP_ASSIST) {
-    int desired_angle = to_signed((GET_BYTE(to_send, 6) << 6) | ((GET_BYTE(to_send, 7) & 0xFC) >> 2), 14);
-    bool lka_active = GET_BIT(to_send, 36);
+    // int desired_angle = to_signed((GET_BYTE(to_send, 6) << 6) | ((GET_BYTE(to_send, 7) & 0xFC) >> 2), 14);
+    // bool lka_active = GET_BIT(to_send, 36);
 
-    if (steer_angle_cmd_checks(desired_angle, lka_active, PSA_STEERING_LIMITS)) {
-      tx = false;
-    }
+    // if (steer_angle_cmd_checks(desired_angle, lka_active, PSA_STEERING_LIMITS)) {
+    //   tx = false;
+    // }
   }
 
   return tx;
@@ -142,6 +142,6 @@ static safety_config psa_init(uint16_t param) {
 const safety_hooks psa_hooks = {
   .init = psa_init,
   .rx = psa_rx_hook,
-  .tx = alloutput_tx_hook,
+  .tx = psa_tx_hook,
   .fwd = psa_fwd_hook,
 };
