@@ -105,6 +105,7 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
 
 static int psa_fwd_hook(int bus_num, int addr) {
   UNUSED(bus_num);
+  UNUSED(addr);
   int bus_fwd = -1;
   switch (bus_num) {
     case PSA_MAIN_BUS: {
