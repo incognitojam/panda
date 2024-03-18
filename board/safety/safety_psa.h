@@ -18,10 +18,10 @@ const CanMsg PSA_TX_MSGS[] = {
 RxCheck psa_rx_checks[] = {
   // TODO: check frequencies
   // TODO: counters and checksums
-  {.msg = {{PSA_CRUISE, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},
-  {.msg = {{PSA_POWERTRAIN, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},
-  {.msg = {{PSA_WHEEL_SPEEDS, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
-  {.msg = {{PSA_DRIVER, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
+  // {.msg = {{PSA_CRUISE, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},
+  // {.msg = {{PSA_POWERTRAIN, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},
+  // {.msg = {{PSA_WHEEL_SPEEDS, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
+  // {.msg = {{PSA_DRIVER, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
 };
 
 static bool psa_lkas_msg_check(int addr) {
@@ -104,8 +104,6 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
 }
 
 static int psa_fwd_hook(int bus_num, int addr) {
-  UNUSED(bus_num);
-  UNUSED(addr);
   int bus_fwd = -1;
   switch (bus_num) {
     case PSA_MAIN_BUS: {
