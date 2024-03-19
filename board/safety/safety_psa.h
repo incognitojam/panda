@@ -91,7 +91,7 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
     // Signal: ANGLE
     int desired_angle = to_signed((GET_BYTE(to_send, 6) << 6) | ((GET_BYTE(to_send, 7) & 0xFCU) >> 2), 14);
     // Signal: STATUS
-    bool lka_active = (GET_BYTE(to_send, 4) & 0x18U) == 2U;
+    bool lka_active = ((GET_BYTE(to_send, 4) & 0x18U) >> 3) == 2U;
 
     if (steer_angle_cmd_checks(desired_angle, lka_active, PSA_STEERING_LIMITS)) {
       tx = false;
