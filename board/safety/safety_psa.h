@@ -1,31 +1,30 @@
 // Safety-relevant CAN messages for PSA vehicles.
-#define PSA_CRUISE           0
-#define PSA_CRUISE_BUTTONS   0
-#define PSA_POWERTRAIN       520
-#define PSA_WHEEL_SPEEDS     781
-#define PSA_LANE_KEEP_ASSIST 1010
-#define PSA_DRIVER           1390
+#define PSA_DAT_BSI              1042
+#define PSA_LANE_KEEP_ASSIST     1010
+// Messages on the ADAS bus.
+#define PSA_HS2_DYN_ABR_38D      909
+#define PSA_HS2_BGE_DYN5_CMM_228 552
+#define PSA_HS2_DAT_MDD_CMD_452  1106
 
 // CAN bus numbers.
 #define PSA_MAIN_BUS 0U
+#define PSA_ADAS_BUS 1U
 #define PSA_CAM_BUS  2U
 
 const CanMsg PSA_TX_MSGS[] = {
-  {PSA_CRUISE_BUTTONS, 0, 8},
   {PSA_LANE_KEEP_ASSIST, 0, 8},
 };
 
 RxCheck psa_rx_checks[] = {
-  // TODO: check frequencies
   // TODO: counters and checksums
-  // {.msg = {{PSA_CRUISE, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},
-  // {.msg = {{PSA_POWERTRAIN, 0, 8, .frequency = 100U}, { 0 }, { 0 }}},
-  // {.msg = {{PSA_WHEEL_SPEEDS, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
-  // {.msg = {{PSA_DRIVER, 0, 8, .frequency = 50U}, { 0 }, { 0 }}},
+  {.msg = {{PSA_DAT_BSI, PSA_MAIN_BUS, 8, .frequency = 20U}, { 0 }, { 0 }}},
+  {.msg = {{PSA_HS2_DYN_ABR_38D, PSA_ADAS_BUS, 8, .frequency = 25U}, { 0 }, { 0 }}},
+  {.msg = {{PSA_HS2_BGE_DYN5_CMM_228, PSA_ADAS_BUS, 8, .frequency = 100U}, { 0 }, { 0 }}},
+  {.msg = {{PSA_HS2_DAT_MDD_CMD_452, PSA_ADAS_BUS, 6, .frequency = 20U}, { 0 }, { 0 }}},
 };
 
 static bool psa_lkas_msg_check(int addr) {
-  return (addr == PSA_LANE_KEEP_ASSIST);
+  return addr == PSA_LANE_KEEP_ASSIST;
 }
 
 // TODO: update rate limits
@@ -42,36 +41,40 @@ const SteeringLimits PSA_STEERING_LIMITS = {
 };
 
 static void psa_rx_hook(const CANPacket_t *to_push) {
-  if (GET_BUS(to_push) == PSA_MAIN_BUS) {
-    int addr = GET_ADDR(to_push);
+  int bus = GET_BUS(to_push);
+  int addr = GET_ADDR(to_push);
 
-    // TODO: find cruise state
-
-    // Update wheel speeds and in motion state
-    if (addr == PSA_WHEEL_SPEEDS) {
-      // TODO: find front/rear wheels
-      int wheel_speed_1 = (GET_BYTE(to_push, 0) << 8) | GET_BYTE(to_push, 1);
-      int wheel_speed_2 = (GET_BYTE(to_push, 2) << 8) | GET_BYTE(to_push, 3);
-      int wheel_speed_3 = (GET_BYTE(to_push, 4) << 8) | GET_BYTE(to_push, 5);
-      int wheel_speed_4 = (GET_BYTE(to_push, 6) << 8) | GET_BYTE(to_push, 7);
-      // TODO: find standstill signal
-      vehicle_moving = (wheel_speed_1 | wheel_speed_2 | wheel_speed_3 | wheel_speed_4) != 0U;
-      UPDATE_VEHICLE_SPEED((wheel_speed_1 + wheel_speed_2 + wheel_speed_3 + wheel_speed_4) / 4.0 * 0.01);
-    }
-
-    // Update gas pedal
-    if (addr == PSA_DRIVER) {
-      // Pedal position: (0.5 * val)% (up to 99.5%)
-      gas_pressed = GET_BYTE(to_push, 3) > 0U;
-    }
-
+  if (bus == PSA_MAIN_BUS) {
     // Update brake pedal
-    if (addr == PSA_POWERTRAIN) {
-      brake_pressed = GET_BIT(to_push, 33);
+    if (addr == PSA_DAT_BSI) {
+      // Signal: P013_MainBrake
+      brake_pressed = GET_BIT(to_push, 5);
     }
 
     bool stock_ecu_detected = psa_lkas_msg_check(addr);
     generic_rx_checks(stock_ecu_detected);
+  }
+
+  if (bus == PSA_ADAS_BUS) {
+    // Update vehicle speed and in motion state
+    if (addr == PSA_HS2_DYN_ABR_38D) {
+      // Signal: VITESSE_VEHICULE_ROUES
+      int speed = (GET_BYTE(to_push, 0) << 8) | GET_BYTE(to_push, 1);
+      vehicle_moving = speed > 0;
+      UPDATE_VEHICLE_SPEED(speed * 0.01);
+    }
+
+    // Update gas pedal
+    if (addr == PSA_HS2_BGE_DYN5_CMM_228) {
+      // Signal: EFCMNT_PDLE_ACCEL
+      gas_pressed = GET_BYTE(to_push, 2) > 0U;
+    }
+
+    // Update cruise state
+    if (addr == PSA_HS2_DAT_MDD_CMD_452) {
+      // Signal: DDE_ACTIVATION_RVV_ACC
+      pcm_cruise_check(GET_BIT(to_push, 23));
+    }
   }
 }
 
@@ -79,25 +82,20 @@ static bool psa_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
-  // Safety check for cruise buttons
-  if (addr == PSA_CRUISE_BUTTONS) {
-    bool violation = false;
-    // TODO: check resume is not pressed when controls not allowed
-    // TODO: check cancel is not pressed when cruise isn't engaged
-
-    if (violation) {
-      tx = false;
-    }
-  }
+  // TODO: Safety check for cruise buttons
+  // TODO: check resume is not pressed when controls not allowed
+  // TODO: check cancel is not pressed when cruise isn't engaged
 
   // Safety check for LKA
   if (addr == PSA_LANE_KEEP_ASSIST) {
-    // int desired_angle = to_signed((GET_BYTE(to_send, 6) << 6) | ((GET_BYTE(to_send, 7) & 0xFC) >> 2), 14);
-    // bool lka_active = GET_BIT(to_send, 36);
+    // Signal: ANGLE
+    int desired_angle = to_signed((GET_BYTE(to_send, 6) << 6) | ((GET_BYTE(to_send, 7) & 0xFC) >> 2), 14);
+    // Signal: STATUS
+    bool lka_active = (GET_BYTE(to_send, 4) & 0x18) == 2U;
 
-    // if (steer_angle_cmd_checks(desired_angle, lka_active, PSA_STEERING_LIMITS)) {
-    //   tx = false;
-    // }
+    if (steer_angle_cmd_checks(desired_angle, lka_active, PSA_STEERING_LIMITS)) {
+      tx = false;
+    }
   }
 
   return tx;
