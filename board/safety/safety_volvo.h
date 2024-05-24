@@ -91,7 +91,6 @@ static bool volvo_tx_hook(const CANPacket_t *to_send) {
   if (addr == VOLVO_EUCD_CCButtons) {
     // Violation if resume button is pressed while controls not allowed, or
     // if cancel button is pressed when cruise isn't engaged.
-    bool violation = false;
     violation |= !cruise_engaged_prev && (GET_BIT(to_send, 59U) || !(GET_BIT(to_send, 43U)));  // Signals: ACCOnOffBtn, ACCOnOffBtnInv (cancel)
     violation |= !controls_allowed && (GET_BIT(to_send, 61U) || !(GET_BIT(to_send, 45U)));  // Signals: ACCResumeBtn, ACCResumeBtnInv (resume)
   }
