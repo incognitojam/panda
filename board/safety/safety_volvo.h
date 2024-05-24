@@ -75,7 +75,7 @@ static void volvo_rx_hook(const CANPacket_t *to_push) {
   } else if (bus == VOLVO_CAM_BUS) {
     if (addr == VOLVO_EUCD_FSM0) {
       // Signal: ACCStatus
-      unsigned int cruise_state = GET_BYTE(to_push, 2) & 0x03U;
+      unsigned int cruise_state = GET_BYTE(to_push, 2) & 0x07U;
       bool cruise_engaged = (cruise_state == 6U) || (cruise_state == 7U);
       pcm_cruise_check(cruise_engaged);
     }
