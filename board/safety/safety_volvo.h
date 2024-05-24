@@ -53,9 +53,9 @@ static void volvo_rx_hook(const CANPacket_t *to_push) {
   if (bus == VOLVO_MAIN_BUS) {
     if (addr == VOLVO_EUCD_VehicleSpeed1) {
       // Signal: VehicleSpeed
-      unsigned int speed = ((GET_BYTE(to_push, 6) << 8) | GET_BYTE(to_push, 7)) * 0.01 / 3.6;
-      UPDATE_VEHICLE_SPEED(speed);
-      vehicle_moving = speed >= 0.1 * 3.6;
+      unsigned int speed_raw = (GET_BYTE(to_push, 6) << 8) | GET_BYTE(to_push, 7);
+      vehicle_moving = speed_raw >= 36U;
+      UPDATE_VEHICLE_SPEED(speed_raw * 0.01 / 3.6);
     }
 
     if (addr == VOLVO_EUCD_AccPedal) {
