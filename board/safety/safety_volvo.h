@@ -67,7 +67,7 @@ static void volvo_rx_hook(const CANPacket_t *to_push) {
 
     if (addr == VOLVO_EUCD_Brake_Info) {
       // Signal: BrakePedal
-      brake_pressed = (GET_BYTE(to_push, 2) & 0x0CU) == 2U;
+      brake_pressed = ((GET_BYTE(to_push, 2) & 0x0CU) >> 2U) == 2U;
     }
 
     // If steering controls messages are received on the destination bus, it's an indication
