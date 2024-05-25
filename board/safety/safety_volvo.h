@@ -1,8 +1,8 @@
 // Safety-relevant CAN messages for EUCD platform.
 #define VOLVO_EUCD_AccPedal      0x020  // RX, gas pedal
 #define VOLVO_EUCD_FSM0          0x051  // RX from FSM, cruise state
-#define VOLVO_EUCD_EngineData    0x12a  // RX, brake pressed
 #define VOLVO_EUCD_VehicleSpeed1 0x148  // RX, vehicle speed
+#define VOLVO_EUCD_Brake_Info    0x20a  // RX, driver brake pressed
 #define VOLVO_EUCD_CCButtons     0x127  // TX by OP, CC buttons
 #define VOLVO_EUCD_PSCM1         0x246  // TX by OP to camera, PSCM state
 #define VOLVO_EUCD_FSM2          0x262  // TX by OP, LKA command
@@ -33,11 +33,12 @@ const CanMsg VOLVO_EUCD_TX_MSGS[] = {
   {VOLVO_EUCD_FSM3,      VOLVO_MAIN_BUS, 8}
 };
 
+// TODO: add counters
 RxCheck volvo_eucd_rx_checks[] = {
   {.msg = {{VOLVO_EUCD_AccPedal,      VOLVO_MAIN_BUS, 8, .frequency = 100U}, { 0 }, { 0 }}},
   {.msg = {{VOLVO_EUCD_FSM0,          VOLVO_CAM_BUS,  8, .frequency = 100U}, { 0 }, { 0 }}},
-  {.msg = {{VOLVO_EUCD_EngineData,    VOLVO_MAIN_BUS, 8, .frequency = 67U}, { 0 }, { 0 }}},
   {.msg = {{VOLVO_EUCD_VehicleSpeed1, VOLVO_MAIN_BUS, 8, .frequency = 50U}, { 0 }, { 0 }}},
+  {.msg = {{VOLVO_EUCD_Brake_Info,    VOLVO_MAIN_BUS, 8, .frequency = 50U}, { 0 }, { 0 }}},
 };
 
 static bool volvo_lkas_msg_check(int addr) {
@@ -64,9 +65,9 @@ static void volvo_rx_hook(const CANPacket_t *to_push) {
       gas_pressed = gas_raw > 100U;
     }
 
-    if (addr == VOLVO_EUCD_EngineData) {
-      // Signal: BrakePressed
-      brake_pressed = GET_BIT(to_push, 38);
+    if (addr == VOLVO_EUCD_Brake_Info) {
+      // Signal: BrakePedal
+      brake_pressed = (GET_BYTE(to_push, 2) & 0x0CU) == 2U;
     }
 
     // If steering controls messages are received on the destination bus, it's an indication
