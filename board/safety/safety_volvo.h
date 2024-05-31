@@ -13,19 +13,6 @@
 #define VOLVO_AUX_BUS  1U
 #define VOLVO_CAM_BUS  2U
 
-// Note: EUCD has a strict angle rate limit of 50 CAN units.
-// const SteeringLimits VOLVO_EUCD_STEERING_LIMITS = {
-//   .angle_deg_to_can = 25,
-//   .angle_rate_up_lookup = {
-//     {0., 5., 15.},
-//     {5., .8, .15}
-//   },
-//   .angle_rate_down_lookup = {
-//     {0., 5., 15.},
-//     {5., 3.5, .4}
-//   },
-// };
-
 const CanMsg VOLVO_EUCD_TX_MSGS[] = {
   {VOLVO_EUCD_CCButtons, VOLVO_MAIN_BUS, 8},
   {VOLVO_EUCD_PSCM1,     VOLVO_CAM_BUS,  8},
@@ -98,9 +85,6 @@ static bool volvo_tx_hook(const CANPacket_t *to_send) {
 
   // Safety check for Lane Keep Assist action.
   if (addr == VOLVO_EUCD_FSM2) {
-    // Signal: LKAAngleReq
-    // unsigned int raw_angle_can = (((GET_BYTE(to_send, 3) & 0x3FU) << 8) | GET_BYTE(to_send, 4));
-    // int desired_angle = raw_angle_can - 8192U;
     // Signal: LKASteerDirection
     unsigned int mode = GET_BYTE(to_send, 5) & 0x03U;
     bool lka_active = mode != 0U;
@@ -108,9 +92,6 @@ static bool volvo_tx_hook(const CANPacket_t *to_send) {
     if (lka_active && !controls_allowed) {
       violation = true;
     }
-    // if (steer_angle_cmd_checks(desired_angle, lka_active, VOLVO_EUCD_STEERING_LIMITS)) {
-    //   violation = true;
-    // }
   }
 
   if (violation) {
